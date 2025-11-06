@@ -1,0 +1,15 @@
+name: Build SharpWSUS
+on: workflow_dispatch
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build
+        run: |
+          nuget restore SharpWSUS.sln
+          msbuild SharpWSUS.sln /p:Configuration=Release /p:Platform="Any CPU" /v:quiet
+      - uses: actions/upload-artifact@v4
+        with:
+          name: SharpWSUS
+          path: SharpWSUS/bin/Release/SharpWSUS.exe

@@ -1,15 +1,30 @@
 name: Build SharpWSUS
-on: workflow_dispatch
+on:
+  workflow_dispatch:  # Allows manual trigger
+  push:
+    branches: [ main ]
+
 jobs:
   build:
     runs-on: windows-latest
+
     steps:
       - uses: actions/checkout@v4
-      - name: Build
+
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Restore NuGet packages (if any)
+        run: nuget restore SharpWSUS.sln
+
+      - name: Build Solution
         run: |
-          nuget restore SharpWSUS.sln
-          msbuild SharpWSUS.sln /p:Configuration=Release /p:Platform="Any CPU" /v:quiet
-      - uses: actions/upload-artifact@v4
+          # Use the full path provided by setup-msbuild
+          $msbuild = "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\MSBuild\Current\Bin\MSBuild.exe"
+          & $msbuild SharpWSUS.sln /p:Configuration=Release /p:Platform="Any CPU" /v:quiet
+
+      - name: Upload Binary
+        uses: actions/upload-artifact@v4
         with:
           name: SharpWSUS
           path: SharpWSUS/bin/Release/SharpWSUS.exe

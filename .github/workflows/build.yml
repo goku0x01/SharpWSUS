@@ -1,6 +1,6 @@
 name: Build SharpWSUS
 on:
-  workflow_dispatch:  # Allows manual trigger
+  workflow_dispatch:
   push:
     branches: [ main ]
 
@@ -14,12 +14,20 @@ jobs:
       - name: Setup MSBuild
         uses: microsoft/setup-msbuild@v2
 
+      - name: Install .NET Framework 4.0 Developer Pack
+        run: |
+          # Download and install .NET Framework 4.0 Developer Pack
+          $url = "https://download.microsoft.com/download/9/5/A/95A9616B-7A37-4AF6-BC36-D40C68D01417/NDP40-KB2504617-x86-x64-AllOS-ENU.exe"
+          $installer = "$env:TEMP\ndp40-kb2504617-x86-x64-allos-enu.exe"
+          Invoke-WebRequest -Uri $url -OutFile $installer
+          Start-Process -FilePath $installer -ArgumentList "/q /norestart" -Wait
+          Write-Host "Installed .NET Framework 4.0 Developer Pack"
+
       - name: Restore NuGet packages (if any)
         run: nuget restore SharpWSUS.sln
 
       - name: Build Solution
         run: |
-          # Use the full path provided by setup-msbuild
           $msbuild = "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\MSBuild\Current\Bin\MSBuild.exe"
           & $msbuild SharpWSUS.sln /p:Configuration=Release /p:Platform="Any CPU" /v:quiet
 
